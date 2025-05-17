@@ -1,0 +1,74 @@
+# Flutter & Dart related
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+generated_plugin_registrant.dart
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Android
+android/.gradle/
+android/captures/
+android/local.properties
+android/.idea/
+android/app/debug
+android/app/profile
+android/app/release
+
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner.xcworkspace/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+ios/.generated/
+ios/.idea/
+
+# macOS
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/.symlinks/
+macos/.generated/
+
+# Web
+web/generated_plugin_registrant.dart
+
+# Windows
+windows/flutter/ephemeral/
+windows/.generated/
+
+# Linux
+linux/flutter/ephemeral/
+linux/.generated/
+
+# Build outputs
+*.apk
+*.ipa
+*.dill
+*.tmp
+*.log
+
+# Others
+*.DS_Store
+*.lock
+*.bak
+
+# Symbolic links
+.symlinks/
+
+# Coverage
+coverage/
+
+# User specific
+logs/
+.env

@@ -1,0 +1,35 @@
+# Install pre-commit (if not already):
+# pip install pre-commit
+# Run this once in your Flutter project root:
+# pre-commit install
+
+# Manually test it on all files (optional):
+# pre-commit run --all-files
+repos:
+  - repo: local
+    hooks:
+      - id: scaffold-dart-md
+        name: Add SteerWise headers to Dart and Markdown files
+        entry: ./scripts/scaffold.sh
+        language: script
+        types: [dart, markdown]
+        args: [dart]
+      - id: scaffold-md
+        name: Add SteerWise headers to Markdown files
+        entry: ./scripts/scaffold.sh
+        language: script
+        types: [markdown]
+        args: [md]  
+  - repo: https://github.com/dart-lang/pre-commit-dart
+    rev: v0.2.0
+    hooks:
+      - id: dart-format
+      - id: dart-analyze
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-added-large-files
