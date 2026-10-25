@@ -7,7 +7,7 @@
 # settings.gradle.kts.
 
 [versions]
-androidGradlePlugin = "8.13.1"
+androidGradlePlugin = "9.4.1"
 compileSdk = "36"
 kotlin = "2.3.20"
 ndk = "30.0.16248370"
