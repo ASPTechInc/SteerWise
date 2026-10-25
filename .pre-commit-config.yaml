@@ -15,7 +15,7 @@ repos:
         entry: ./scripts/scaffold.sh dart
         language: script
         types: [dart]
-        files: ^(lib|test)/
+        files: ^(lib|test|integration_test)/
 
       - id: scaffold-md
         name: Add SteerWise header to documentation

@@ -3,8 +3,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // Built-in Kotlin for this module only; see android.builtInKotlin in gradle.properties.
+    id("com.android.built-in-kotlin")
+    // The Flutter Gradle Plugin must be applied after the Android Gradle plugin.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -26,8 +27,7 @@ val unsignedRelease = System.getenv("UNSIGNED_RELEASE") == "true"
 
 android {
     namespace = "com.asptechinc.steerwise"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    ndkVersion = libs.versions.ndk.get()
+    compileSdk = 37
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -42,6 +42,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Runs integration_test/ on a device; see src/androidTest. The
+        // integration_test plugin provides the AndroidX test libraries.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     sourceSets {

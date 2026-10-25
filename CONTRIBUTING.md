@@ -91,10 +91,16 @@ Please add or update tests when you change app logic, such as the theme settings
 or the driving simulation. Keep logic in plain Dart classes (like `DrivingGame` and
 `filterQuestions`) where possible, so it can be tested without building widgets.
 
+Unit and widget tests live in `test/`; `test/support/test_app.dart` fakes the camera, speech and
+links so screens can be tested without a device. End-to-end tests of the real app live in
+`integration_test/`.
+
 ### Run the test suite
 
 ```bash
-flutter test
+flutter test                      # unit and widget tests
+flutter test integration_test     # on a connected device or emulator
+make android-test                 # integration tests as Android instrumentation tests
 ```
 
 ---

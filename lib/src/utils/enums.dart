@@ -8,3 +8,7 @@
 library;
 
 enum TrafficLightState { red, yellow, green }
+
+/// Whether the driving simulation is running. It starts stopped, so
+/// nothing moves until the user chooses to drive.
+enum SimulationState { stopped, running, paused }

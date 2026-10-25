@@ -95,23 +95,28 @@ class _ShowMeTellMeScreenState extends State<ShowMeTellMeScreen> {
   }
 
   Widget _buildFilterMenu() {
+    // PopupMenuButton treats a null value as the menu being dismissed, so
+    // "All" uses an empty string instead.
+    const all = '';
     const options = {
-      null: 'All',
+      all: 'All',
       DrivingQuestion.show: 'Show',
       DrivingQuestion.tell: 'Tell',
     };
-    return PopupMenuButton<String?>(
+    final selected = _typeFilter ?? all;
+    return PopupMenuButton<String>(
       icon: Icon(
         _typeFilter == null ? Icons.filter_alt_outlined : Icons.filter_alt,
       ),
       tooltip: 'Filter questions',
-      initialValue: _typeFilter,
-      onSelected: (value) => setState(() => _typeFilter = value),
+      initialValue: selected,
+      onSelected: (value) =>
+          setState(() => _typeFilter = value == all ? null : value),
       itemBuilder: (_) => [
         for (final MapEntry(key: value, value: label) in options.entries)
-          CheckedPopupMenuItem<String?>(
+          CheckedPopupMenuItem<String>(
             value: value,
-            checked: _typeFilter == value,
+            checked: selected == value,
             child: Text(label),
           ),
       ],

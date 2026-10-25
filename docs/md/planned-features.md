@@ -131,13 +131,3 @@ These features are under active consideration or development to enhance the lear
    **Data Consent & GDPR Compliance**
 
    Clear, user-manageable options for handling video/audio/data.
-
-**Bonus: Monetisation Ideas (for later)**
-
-- Premium features (AI feedback, skill assessments)
-
-- Branded voice packs
-
-- Instructor dashboard subscriptions
-
-- Sponsored tips (from driving schools)

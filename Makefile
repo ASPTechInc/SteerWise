@@ -20,7 +20,9 @@ help:
 	@echo "  make build-macos    - Build for macOS"
 	@echo "  make analyse        - Run the Flutter analyser"
 	@echo "  make format         - Format Dart code"
-	@echo "  make test           - Run tests"
+	@echo "  make test           - Run unit and widget tests"
+	@echo "  make integration-test - Run on-device tests on a connected device"
+	@echo "  make android-test   - Run on-device tests as Android instrumentation tests"
 	@echo "  make icons          - Generate launcher icons"
 	@echo "  make docs           - Convert docs/md to docs/html"
 	@echo "  make foss-audit     - Check for non-free dependencies"
@@ -78,12 +80,29 @@ analyse:
 .PHONY: format
 format:
 	@echo "Formatting Dart code..."
-	@dart format lib/ test/
+	@dart format lib/ test/ integration_test/
 
 .PHONY: test
 test:
 	@echo "Running tests..."
 	@$(FLUTTER) test
+
+# On Android, allow camera access when asked (or use android-test, which
+# grants it), otherwise the permission prompt pauses the tests.
+.PHONY: integration-test
+integration-test:
+	@echo "Running integration tests..."
+	@$(FLUTTER) test integration_test
+
+.PHONY: android-test
+android-test:
+	@echo "Running Android instrumentation tests..."
+	@rm -rf build/app/outputs/androidTest-results
+	@$(FLUTTER) build apk --debug --config-only
+	@cd android && ./gradlew app:connectedDebugAndroidTest -Ptarget=$(CURDIR)/integration_test/app_test.dart
+	@# Gradle still reports success if the device disconnects before any test runs.
+	@grep -qsE '<testsuite [^>]*tests="[1-9]' build/app/outputs/androidTest-results/connected/debug/TEST-*.xml \
+		|| { echo "No instrumentation tests ran. Is the device still connected?"; exit 1; }
 
 .PHONY: icons
 icons:

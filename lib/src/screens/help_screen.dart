@@ -59,6 +59,10 @@ class HelpScreen extends StatelessWidget {
       Icons.traffic,
       'Driving simulation',
       [
+        'Tap the road or the play button to start driving. Use the pause '
+            'button to take a break and the stop button to start again from '
+            'the beginning. Driving pauses when you switch tab or leave the '
+            'app.',
         'You drive in the left lane, as in the UK. Oncoming cars use the '
             'right lane and sometimes change lane.',
         'Steer with the arrow buttons or by swiping left or right.',

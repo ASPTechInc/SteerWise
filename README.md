@@ -24,7 +24,6 @@
 - [Licence](#licence)
 - [Contributing](#contributing)
 - [Developer notes](#developer-notes)
-- [Learning resources](#learning-resources)
 - [Other projects](#other-projects)
 - [Support](#support)
 
@@ -120,7 +119,16 @@ Common tasks are also available through the [Makefile](Makefile) - run `make hel
 ## How to test
 
 ```bash
+# Unit and widget tests (no device needed)
 flutter test
+
+# On-device integration tests, on any connected device or emulator.
+# On Android, allow camera access when asked.
+flutter test integration_test
+
+# The same tests as Android instrumentation tests (camera access is granted
+# automatically)
+make android-test
 ```
 
 ---
@@ -191,16 +199,6 @@ If you find any issues or have suggestions, feel free to [open an issue](https:/
 ## Developer notes
 
 For a detailed breakdown of technical workflows, local testing guides and setup steps, see the [developer notes](docs/md/developer-notes.md).
-
----
-
-## Learning resources
-
-If you're new to Flutter, check out:
-
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter Cookbook](https://docs.flutter.dev/cookbook)
-- [Flutter Documentation](https://docs.flutter.dev)
 
 ---
 

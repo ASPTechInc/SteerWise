@@ -9,7 +9,6 @@ library;
 
 // Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +19,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:steer_wise/src/providers/theme_provider.dart';
 import 'package:steer_wise/src/screens/help_screen.dart';
 import 'package:steer_wise/src/screens/settings_screen.dart';
-import 'package:steer_wise/src/screens/show_me_tell_screen.dart';
 import 'package:steer_wise/src/services/tts_service.dart';
 
 /// Wraps [child] in the providers and MaterialApp the screens expect.
@@ -72,46 +70,5 @@ void main() {
     ]) {
       expect(find.text(title), findsOneWidget);
     }
-  });
-
-  group('Show Me/Tell Me', () {
-    Finder questionsOfType(String type) => find.byWidgetPredicate(
-      (w) => w is Text && (w.textSpan?.toPlainText() ?? '').startsWith(type),
-    );
-
-    // Each test loads the questions itself; a copy cached by an earlier
-    // test belongs to that test's fake clock and never completes here.
-    setUp(() => rootBundle.evict(ShowMeTellMeScreen.questionsAsset));
-
-    Future<void> chooseFilter(WidgetTester tester, String label) async {
-      await tester.tap(find.byTooltip('Filter questions'));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.widgetWithText(CheckedPopupMenuItem<String?>, label),
-      );
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('filter keeps only the chosen type', (tester) async {
-      await _pumpScreen(tester, const ShowMeTellMeScreen());
-      expect(questionsOfType('TELL'), findsWidgets);
-
-      await chooseFilter(tester, 'Show');
-
-      expect(questionsOfType('SHOW'), findsWidgets);
-      expect(questionsOfType('TELL'), findsNothing);
-    });
-
-    testWidgets('choosing a filter keeps the search text', (tester) async {
-      await _pumpScreen(tester, const ShowMeTellMeScreen());
-
-      await tester.enterText(find.byType(TextField), 'brakes');
-      await tester.pumpAndSettle();
-      await chooseFilter(tester, 'Tell');
-
-      expect(find.text('brakes'), findsOneWidget);
-      expect(questionsOfType('TELL'), findsOneWidget);
-      expect(questionsOfType('SHOW'), findsNothing);
-    });
   });
 }
