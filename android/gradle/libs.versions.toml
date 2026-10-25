@@ -9,7 +9,7 @@
 [versions]
 androidGradlePlugin = "9.4.1"
 compileSdk = "36"
-kotlin = "2.3.20"
+kotlin = "2.4.21"
 ndk = "30.0.16248370"
 
 [plugins]
