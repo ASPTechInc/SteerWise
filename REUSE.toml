@@ -1,0 +1,47 @@
+# REUSE licensing metadata: https://reuse.software/spec-3.3/
+# SteerWise source files carry the project header added by
+# scripts/scaffold.sh rather than SPDX tags, so these annotations say who
+# owns each file and under which licence. When several annotations match a
+# file, the last one wins, so the exceptions come after the default.
+# Check with: reuse lint
+version = 1
+
+# Default: everything written for SteerWise (code, docs, icon and logo).
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 ASPTechnologies Incorporation"
+SPDX-License-Identifier = "MIT"
+
+# Platform runners were generated from Flutter's templates (BSD-3-Clause)
+# and then edited for SteerWise (MIT).
+[[annotations]]
+path = ["android/**", "ios/**", "linux/**", "macos/**", "windows/**", "web/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = [
+  "2014 The Flutter Authors",
+  "2026 ASPTechnologies Incorporation",
+]
+SPDX-License-Identifier = "BSD-3-Clause AND MIT"
+
+# The Show Me/Tell Me questions and answers are the DVSA's wording from
+# https://www.gov.uk/government/publications/car-show-me-tell-me-vehicle-safety-questions
+[[annotations]]
+path = "assets/data/show_me_tell_me_questions.json"
+precedence = "override"
+SPDX-FileCopyrightText = "Crown copyright, Driver and Vehicle Standards Agency"
+SPDX-License-Identifier = "OGL-UK-3.0"
+
+# Screenshots of the Show Me/Tell Me screen show the DVSA questions.
+[[annotations]]
+path = [
+  "assets/screenshots/*/show_me_tell_me.png",
+  "fastlane/metadata/android/en-GB/images/phoneScreenshots/2.png",
+  "fastlane/metadata/android/en-GB/images/phoneScreenshots/4.png",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "2026 ASPTechnologies Incorporation",
+  "Crown copyright, Driver and Vehicle Standards Agency",
+]
+SPDX-License-Identifier = "MIT AND OGL-UK-3.0"

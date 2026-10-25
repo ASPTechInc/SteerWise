@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 ASPTechnologies Incorporation
+# SPDX-License-Identifier: MIT
+
+# Checks that SteerWise stays free of non-free dependencies (so it can be
+# published on F-Droid), is REUSE compliant and has a valid F-Droid recipe.
+# Runs on every push and pull request to main, weekly, and on demand.
+# Run the same checks locally with: make foss-audit && make reuse-lint
+name: FOSS Compliance Dependency Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Weekly, to catch changes in upstream dependencies
+    - cron: "0 0 * * 0"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Java Development Kit Environment
+        uses: actions/setup-java@v6
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Setup Flutter SDK Environment
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: "stable"
+          cache: true
+
+      - name: Install Project Flutter Package Dependencies
+        run: flutter pub get
+
+      - name: Generate Android Gradle Wrapper
+        run: flutter build apk --config-only
+
+      - name: Run FOSS audit script
+        run: ./scripts/foss_audit.sh
+
+      - name: Check REUSE licensing compliance
+        run: pipx run reuse lint
+
+      - name: Lint F-Droid metadata
+        run: |
+          pipx install fdroidserver
+          # fdroid lint validates Categories against fdroiddata's list, so fetch it
+          mkdir -p fdroid-lint/config fdroid-lint/metadata
+          curl -sfL https://gitlab.com/fdroid/fdroiddata/-/raw/master/config/categories.yml \
+            | grep -vE '^\s+icon:' > fdroid-lint/config/categories.yml
+          cp metadata/com.asptechinc.steerwise.yml fdroid-lint/metadata/
+          cd fdroid-lint && fdroid lint com.asptechinc.steerwise

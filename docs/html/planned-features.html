@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Planned Features | SteerWise Documentation</title>
+    <style>
+    body { font-family: sans-serif; margin: 40px; max-width: 800px; }
+    code { background: #f5f5f5; padding: 2px 4px; border-radius: 3px; }
+    pre code { display: block; padding: 10px; overflow-x: auto; }
+    h1, h2, h3 { color: #333; }
+  </style>
+  </head>
+  <body>
+
+    <h1>SteerWise - Smart Driving Practice App</h1>
+    <p><strong>File:</strong> <a
+        href="https://github.com/ASPTechInc/SteerWise/blob/main/docs/md/planned-features.md">planned-features.md</a></p>
+    <p><strong>Repo:</strong> <a
+        href="https://github.com/ASPTechInc/SteerWise">https://github.com/ASPTechInc/SteerWise</a></p>
+    <p>Copyright © 2026 ASPTechnologies Incorporation. All Rights Reserved.</p>
+    <p>Licensed under the MIT License (see LICENSE).</p>
+    <hr />
+    <h2>Planned Features</h2>
+    <p>These features are under active consideration or development to enhance
+      the learning experience:</p>
+    <ul>
+      <li><strong>Map Integration</strong></li>
+    </ul>
+    <p>Display real-time routes or simulated driving paths for realistic visual
+      guidance. A <code>/map</code> route is reserved in
+      <code>routes.dart</code>, but the map view is not built yet (the
+      simulation currently shows a painted mini map). Use the FOSS <a
+        href="https://pub.dev/packages/flutter_map"><code>flutter_map</code></a>
+      package with OpenStreetMap rather than Google Maps, which F-Droid does not
+      accept, and follow the <a
+        href="https://operations.osmfoundation.org/policies/tiles/">OpenStreetMap
+        tile usage policy</a>.</p>
+    <ul>
+      <li><strong>Video Recording &amp; Session Playback</strong></li>
+    </ul>
+    <p>Record practice sessions using the device camera. Save and review footage
+      with timestamps for each instruction issued. The Home screen already shows
+      a front-camera preview (<code>CameraPreviewBox</code>, built on the
+      <code>camera</code> package); recording would add a capture mode on the
+      same controller, at a resolution chosen for recording.</p>
+    <ul>
+      <li><strong>Codeberg Mirror and GitHub-free Feedback</strong></li>
+    </ul>
+    <p>Mirror the repository on <a href="https://codeberg.org">Codeberg</a>
+      (non-profit, free-software hosting) and offer a way to send feedback that
+      does not need a GitHub account, such as Codeberg issues or an email
+      address.</p>
+    <ul>
+      <li><strong>Reproducible Builds</strong></li>
+    </ul>
+    <p>Make release APKs build byte-for-byte the same from the same source.
+      F-Droid can then publish the developer-signed APK (using
+      <code>Binaries</code> and <code>AllowedAPKSigningKeys</code> in the build
+      recipe), so users can switch between GitHub and F-Droid installs without
+      reinstalling.</p>
+    <ul>
+      <li><strong>Device Screenshots of the Home Screen</strong></li>
+    </ul>
+    <p>The store screenshots in
+      <code>fastlane/metadata/android/en-GB/images/phoneScreenshots/</code> were
+      rendered from the app without a camera. Add screenshots from a real device
+      showing the Home screen with the camera preview and driving
+      simulation.</p>
+    <ul>
+      <li><strong>AI-Based Voice Feedback</strong></li>
+    </ul>
+    <p>Analyse user responses and give real-time corrective audio feedback
+      (e.g., delayed turns, incorrect steering technique). This would replace
+      the fixed tip shown by the Get Feedback button.</p>
+    <ul>
+      <li><strong>Practice Session Tracking</strong></li>
+    </ul>
+    <p>Log each session’s start, end, duration, and instruction types followed.
+      Track progress over time with graphs or summaries.</p>
+    <hr />
+    <h2>Advanced App Improvement Suggestions</h2>
+    <ol>
+      <li><strong>User Experience (UX) &amp; Interaction</strong></li>
+    </ol>
+    <p><strong>Custom Scenario Builder</strong></p>
+    <p>Let users or instructors create custom driving scenarios (e.g.,
+      roundabout with 3 exits, 2-way junction with traffic) to tailor
+      practice.</p>
+    <p><strong>Instruction Voice Pack Selector</strong></p>
+    <p>Allow users to pick different voices or languages for spoken instructions
+      (male/female/robotic/friendly tone).</p>
+    <p><strong>Haptic Feedback Support</strong></p>
+    <p>Vibrate the phone for certain instructions (e.g., incorrect manoeuvre or
+      missed instruction).</p>
+    <p><strong>Onboarding Wizard</strong></p>
+    <p>Help users set up their practice environment with step-by-step setup for
+      dinner plate, camera placement, and lighting.</p>
+    <p><strong>Night Mode Visualisation</strong></p>
+    <p>Switch road colours and highlights based on simulated time of day.</p>
+    <ol start="2">
+      <li><strong>Learning Intelligence &amp; Coaching</strong></li>
+    </ol>
+    <p><strong>Mistake Replay</strong></p>
+    <p>Automatically flag and replay segments where mistakes were detected
+      (e.g., wrong direction or hesitation).</p>
+    <p><strong>Skill-Based Unlockable Levels</strong></p>
+    <p>Like a game, unlock new challenges (e.g., parallel parking, reversing)
+      based on previous mastery.</p>
+    <p><strong>Drive Rating System</strong></p>
+    <p>Score a session on multiple axes: smoothness, timing, accuracy of turns,
+      response speed, etc.</p>
+    <p><strong>Coaching Notes Mode</strong></p>
+    <p>Instructors can record voice notes or comments while watching a student’s
+      session replay.</p>
+    <ol start="3">
+      <li><strong>Technical/Platform Features</strong></li>
+    </ol>
+    <p><strong>Voice Command Input</strong></p>
+    <p>Let users respond to instructions via voice for interactive sessions
+      (“Turning left now”).</p>
+    <p><strong>Local DB for Progress &amp; Configs</strong></p>
+    <p>Use sqflite or hive to store offline progress and user settings (the
+      theme preference is already saved with
+      <code>shared_preferences</code>).</p>
+    <p><strong>Gesture/Hand Detection with Camera</strong></p>
+    <p>Use TensorFlow Lite or MediaPipe to classify correct push-pull technique
+      in real time.</p>
+    <p><strong>Session Export</strong></p>
+    <p>Export logs or videos with performance summaries to PDF/CSV/video format
+      for review or instructor sharing.</p>
+    <p><strong>Drive Simulator Compatibility</strong></p>
+    <p>Add support for Android-compatible steering hardware for more realistic
+      practice.</p>
+    <ol start="4">
+      <li><strong>Data &amp; Analytics</strong></li>
+    </ol>
+    <p><strong>Heatmaps of Mistakes</strong></p>
+    <p>Visually highlight zones where the user struggles most often (e.g., right
+      turns, roundabouts).</p>
+    <p><strong>Daily Practice Planner</strong></p>
+    <p>Suggest a practice routine each day, like “2 left turns, 1 roundabout, 1
+      mirror check drill.”</p>
+    <p><strong>Cloud-Based Progress Tracker (Multi-device)</strong></p>
+    <p>Sync driving history across devices or for instructor-managed student
+      profiles.</p>
+    <ol start="5">
+      <li><strong>Security &amp; User Trust</strong></li>
+    </ol>
+    <p><strong>Session Privacy Controls</strong></p>
+    <p>Users can choose whether their recordings are stored, shared, or deleted
+      after each session.</p>
+    <p><strong>Data Consent &amp; GDPR Compliance</strong></p>
+    <p>Clear, user-manageable options for handling video/audio/data.</p>
+    <p><strong>Bonus: Monetisation Ideas (for later)</strong></p>
+    <ul>
+      <li>
+        <p>Premium features (AI feedback, skill assessments)</p>
+      </li>
+      <li>
+        <p>Branded voice packs</p>
+      </li>
+      <li>
+        <p>Instructor dashboard subscriptions</p>
+      </li>
+      <li>
+        <p>Sponsored tips (from driving schools)</p>
+      </li>
+    </ul>
+  </body></html>

@@ -1,0 +1,16 @@
+gradle-wrapper.jar
+/.gradle
+/captures/
+/gradlew
+/gradlew.bat
+/local.properties
+GeneratedPluginRegistrant.java
+.cxx/
+
+# Remember to never publicly share your keystore.
+# See https://flutter.dev/to/reference-keystore
+# SteerWise reads its signing details from app/keystore.properties
+# (see app/keystore.properties.example).
+keystore.properties
+**/*.keystore
+**/*.jks

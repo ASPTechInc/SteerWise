@@ -1,0 +1,21 @@
+SteerWise is a free and open-source (FOSS) driving practice app for learner drivers, built with Flutter. Mount your phone in front of a steering wheel prop, such as a dinner plate, and practise junctions, roundabouts and your push-pull steering technique with spoken instructions and a simulated road.
+
+<b>Features</b>
+<ul>
+<li><b>Voice-guided instructions:</b> spoken prompts such as "Turn left at the junction" or "Take the second exit at the roundabout", stepped through by hand or automatically in Auto Mode.</li>
+<li><b>Driving simulation:</b> a UK left-hand-traffic road with oncoming cars, traffic lights, pedestrians, a score and a mini map. Steer with the arrow buttons or by swiping.</li>
+<li><b>Camera preview:</b> watch your hands on the wheel while you practise.</li>
+<li><b>Show Me/Tell Me questions:</b> the vehicle safety questions from the UK practical driving test, with search, a Show/Tell filter, a practice mode that reveals the answers and read-aloud questions.</li>
+<li><b>Light and dark themes:</b> follow your device setting or choose one yourself.</li>
+<li><b>No tracking:</b> no analytics, no adverts and no account. Your settings stay on your device.</li>
+</ul>
+
+<b>Permissions</b>
+
+<b>Camera:</b> used only to show the live camera preview on the Home screen. The preview is not stored or sent anywhere. The rest of the app works without this permission.
+
+<b>Voice:</b> instructions are read aloud by your device's text-to-speech engine. On phones without one, install a free engine such as RHVoice or eSpeak NG from F-Droid.
+
+SteerWise is a practice aid. It does not replace lessons with a qualified driving instructor.
+
+The Show Me/Tell Me questions contain public sector information licensed under the Open Government Licence v3.0.

@@ -1,0 +1,17 @@
+# Gradle version catalogue for the SteerWise Android build.
+# https://docs.gradle.org/current/userguide/version_catalogs.html
+#
+# Version catalogues cannot be read from the plugins block in settings.gradle.kts,
+# so the androidGradlePlugin and kotlin versions below are kept here for
+# Dependabot and as a single reference. Keep them in step with
+# settings.gradle.kts.
+
+[versions]
+androidGradlePlugin = "8.13.1"
+compileSdk = "36"
+kotlin = "2.3.20"
+ndk = "30.0.16248370"
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

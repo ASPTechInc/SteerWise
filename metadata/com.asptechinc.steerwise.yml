@@ -1,0 +1,46 @@
+# F-Droid build recipe for SteerWise. Copy to metadata/ in a fork of
+# https://gitlab.com/fdroid/fdroiddata when submitting a release.
+# See docs/md/developer-notes.md#f-droid-release-notes.
+Categories:
+  - Science & Education
+License: MIT
+AuthorName: ASPTechnologies Incorporation
+SourceCode: https://github.com/ASPTechInc/SteerWise
+IssueTracker: https://github.com/ASPTechInc/SteerWise/issues
+Changelog: https://github.com/ASPTechInc/SteerWise/blob/HEAD/CHANGELOG.md
+Donate: https://buymeacoffee.com/asptechinc
+
+AutoName: SteerWise
+
+RepoType: git
+Repo: https://github.com/ASPTechInc/SteerWise.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    output: build/app/outputs/flutter-apk/app-release.apk
+    srclibs:
+      - flutter@3.47.7
+    rm:
+      - ios
+      - linux
+      - macos
+      - web
+      - windows
+    prebuild:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter pub get
+    scandelete:
+      - .pub-cache
+    build:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - export UNSIGNED_RELEASE=true
+      - $$flutter$$/bin/flutter build apk --release
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

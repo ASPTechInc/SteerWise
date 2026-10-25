@@ -1,0 +1,255 @@
+# SPDX-FileCopyrightText: 2026 ASPTechnologies Incorporation
+# SPDX-License-Identifier: MIT
+
+# This workflow manages production build and deployment to GitHub Releases
+# when a version tag (e.g. v1.0.0) is pushed. It is triggered by the 'push' event
+# for tags matching 'v*' to the 'main' GitHub branch.
+#
+# e.g. git tag v1.0.0
+#      git push origin v1.0.0
+#
+name: Create SteerWise release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: release
+    if: github.actor != 'dependabot[bot]' # Skip the entire workflow for Dependabot pull requests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Verify Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "ANDROID_HOME: ${ANDROID_HOME:-not set}"
+          echo "ANDROID_SDK_ROOT: ${ANDROID_SDK_ROOT:-not set}"
+
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [[ -z "$SDK" ]]; then
+            echo "::error::Android SDK environment variable is not set"
+            exit 1
+          fi
+
+          if [[ ! -d "$SDK" ]]; then
+            echo "::error::Android SDK directory does not exist: $SDK"
+            exit 1
+          fi
+
+          echo "Android SDK found:"
+          ls -ld "$SDK"
+
+      - name: Verify tag is on main branch
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"; then
+            echo "Error: tag $GITHUB_REF_NAME does not point to a commit contained in main."
+            exit 1
+          fi
+
+      # Build/release steps
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Get version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep "^version: " pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d'+' -f1)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "$VERSION" > version.txt
+          echo "Extracted version: $VERSION"
+
+      - name: Prepare Android signing
+        shell: bash
+        env:
+          KEYSTORE_FILE_NAME: ${{ secrets.KEYSTORE_FILE_NAME }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_CONTENT: ${{ secrets.KEYSTORE_CONTENT }}
+        run: |
+          set -euo pipefail
+
+          # Validate that GitHub injected the secrets.
+          for name in \
+            KEYSTORE_FILE_NAME \
+            KEYSTORE_PASSWORD \
+            KEY_ALIAS \
+            KEY_PASSWORD \
+            KEYSTORE_CONTENT
+          do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::$name was not provided by GitHub Actions"
+              exit 1
+            fi
+          done
+
+          echo "Signing secrets are available."
+
+          # Decode keystore
+          KEYSTORE_PATH="android/app/$KEYSTORE_FILE_NAME"
+
+          printf '%s' "$KEYSTORE_CONTENT" \
+            | base64 --decode \
+            > "$KEYSTORE_PATH"
+
+          if [[ ! -s "$KEYSTORE_PATH" ]]; then
+            echo "::error::Decoded keystore is empty"
+            exit 1
+          fi
+
+          # Create signing configuration.
+          cat > android/app/keystore.properties <<EOF
+          storeFile=$KEYSTORE_FILE_NAME
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+          chmod 600 android/app/keystore.properties
+
+          echo "Android signing configuration prepared."
+
+      - name: Build release APK and bundle
+        run: |
+          set -euo pipefail
+
+          # build.gradle.kts falls back to the debug key if the keystore is
+          # missing, so make sure the release key is in place first.
+          if [[ ! -f android/app/keystore.properties ]]; then
+            echo "::error::android/app/keystore.properties is missing"
+            exit 1
+          fi
+
+          flutter build apk --release
+          flutter build appbundle --release
+
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          AAB="build/app/outputs/bundle/release/app-release.aab"
+
+          if [[ ! -f "$APK" ]]; then
+            echo "::error::Release APK was not created"
+            exit 1
+          fi
+
+          if [[ ! -f "$AAB" ]]; then
+            echo "::error::Release AAB was not created"
+            exit 1
+          fi
+
+          # Rename outputs to match what the upload steps expect
+          cp "$APK" SteerWise.apk
+          cp "$AAB" SteerWise.aab
+
+      - name: Upload APK artefact
+        if: ${{ !env.ACT }} # Accounts for 'act' not having a ACTIONS_RUNTIME_TOKEN
+        uses: actions/upload-artifact@v7
+        with:
+          name: SteerWise-apk
+          path: SteerWise.apk
+          retention-days: 1
+
+      - name: Upload bundle artefact
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: SteerWise-bundle
+          path: SteerWise.aab
+          retention-days: 1
+
+      - name: Upload version artefact
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: version-file
+          path: version.txt
+
+  release:
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]' && !github.event.act
+    needs: build
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download APK artefact
+        uses: actions/download-artifact@v8
+        with:
+          name: SteerWise-apk
+          path: ./
+
+      - name: Download bundle artefact
+        uses: actions/download-artifact@v8
+        with:
+          name: SteerWise-bundle
+          path: ./
+
+      - name: Download version artefact
+        uses: actions/download-artifact@v8
+        with:
+          name: version-file
+          path: ./
+
+      - name: Get version and rename assets
+        id: get_version
+        run: |
+          VERSION=$(cat version.txt)
+
+          if [[ -z "$VERSION" ]]; then 
+            echo "::error::version.txt is empty"
+            exit 1
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          mv SteerWise.apk SteerWise-v$VERSION.apk
+          mv SteerWise.aab SteerWise-v$VERSION.aab
+
+      - name: Create or update GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ env.VERSION }}
+          body: |
+            Automatic release generated by GitHub Actions for SteerWise v${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            SteerWise-v${{ env.VERSION }}.apk
+            SteerWise-v${{ env.VERSION }}.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f version.txt
+          rm -f SteerWise-v${{ env.VERSION }}.apk
+          rm -f SteerWise-v${{ env.VERSION }}.aab

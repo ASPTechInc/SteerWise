@@ -1,0 +1,83 @@
+/// ------------------------------------------------------------------------
+/// SteerWise - Smart Driving Practice App
+/// https://github.com/ASPTechInc/SteerWise
+///
+/// Copyright © 2026 ASPTechnologies Incorporation. All Rights Reserved.
+/// Licensed under the MIT License (see LICENSE).
+/// ------------------------------------------------------------------------
+library;
+
+// Dart imports:
+import 'dart:async';
+
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
+
+// Project imports:
+import 'package:steer_wise/src/config/constants.dart';
+import 'package:steer_wise/src/config/routes.dart';
+import 'package:steer_wise/src/utils/helpers.dart';
+
+class AppSidebar extends StatelessWidget {
+  const AppSidebar({super.key});
+
+  /// Pages open on the root navigator, which knows the app's named routes
+  /// (each bottom navigation tab has its own navigator).
+  void _open(BuildContext context, String route) {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    Navigator.pop(context);
+    unawaited(navigator.pushNamed(route));
+  }
+
+  void _sendFeedback(BuildContext context) {
+    Navigator.pop(context);
+    unawaited(openExternalUrl(AppConstants.issuesUrl));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(color: theme.primaryColor),
+            child: const Text(
+              'SteerWise Menu',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.help),
+            title: const Text('Help'),
+            onTap: () => _open(context, AppRoutes.help),
+          ),
+          ListTile(
+            leading: const Icon(Icons.gavel),
+            title: const Text('Licence'),
+            onTap: () => _open(context, AppRoutes.licence),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip),
+            title: const Text('Privacy policy'),
+            onTap: () => _open(context, AppRoutes.privacy),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: const Text('About'),
+            onTap: () => _open(context, AppRoutes.about),
+          ),
+          ListTile(
+            leading: const Icon(Icons.feedback),
+            title: const Text('Feedback'),
+            subtitle: const Text('Report a problem or suggest an idea'),
+            onTap: () => _sendFeedback(context),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,35 +1,57 @@
-# Install pre-commit (if not already):
-# pip install pre-commit
-# Run this once in your Flutter project root:
-# pre-commit install
+# pre-commit hooks for SteerWise. See https://pre-commit.com
+#
+# Set up (see docs/md/developer-notes.md#enable-pre-commit-in-repository):
+#   pip install pre-commit
+#   pre-commit install
+#
+# Run against every file:
+#   pre-commit run --all-files
 
-# Manually test it on all files (optional):
-# pre-commit run --all-files
 repos:
   - repo: local
     hooks:
-      - id: scaffold-dart-md
-        name: Add SteerWise headers to Dart and Markdown files
-        entry: ./scripts/scaffold.sh
+      - id: scaffold-dart
+        name: Add SteerWise header to Dart files
+        entry: ./scripts/scaffold.sh dart
         language: script
-        types: [dart, markdown]
-        args: [dart]
+        types: [dart]
+        files: ^(lib|test)/
+
       - id: scaffold-md
-        name: Add SteerWise headers to Markdown files
-        entry: ./scripts/scaffold.sh
+        name: Add SteerWise header to documentation
+        entry: ./scripts/scaffold.sh md
         language: script
         types: [markdown]
-        args: [md]  
-  - repo: https://github.com/dart-lang/pre-commit-dart
-    rev: v0.2.0
-    hooks:
+        files: ^docs/md/
+
+      - id: import-sorter
+        name: Sort Dart imports
+        entry: dart run import_sorter:main
+        language: system
+        types: [dart]
+        pass_filenames: false
+
       - id: dart-format
-      - id: dart-analyze
+        name: Format Dart code
+        entry: dart format
+        language: system
+        types: [dart]
+
+      - id: flutter-analyse
+        name: Analyse Dart code
+        entry: flutter analyze --no-fatal-infos
+        language: system
+        types: [dart]
+        pass_filenames: false
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
+      - id: check-added-large-files # 500 KB limit; screenshots are under 300 KB
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: detect-private-key
       - id: end-of-file-fixer
       - id: trailing-whitespace
-      - id: check-yaml
-      - id: check-added-large-files
+        args: ["--markdown-linebreak-ext=md"]

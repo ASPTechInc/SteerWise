@@ -1,0 +1,7 @@
+Initial release of SteerWise FOSS
+- Voice-guided driving instructions with manual and auto modes.
+- UK driving simulation with traffic lights, pedestrians, score and mini map.
+- Live camera preview for steering practice.
+- Show Me/Tell Me questions with search, filter, practice mode and read-aloud.
+- Light, dark and system themes.
+- No accounts, trackers or ads.
