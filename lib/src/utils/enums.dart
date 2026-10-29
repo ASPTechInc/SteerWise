@@ -12,3 +12,9 @@ enum TrafficLightState { red, yellow, green }
 /// Whether the driving simulation is running. It starts stopped, so
 /// nothing moves until the user chooses to drive.
 enum SimulationState { stopped, running, paused }
+
+/// What the examiner asks for next on the simulated route.
+enum ManoeuvreType { junctionLeft, junctionRight, roundabout, pullUpLeft }
+
+/// The player's indicator. Tapping the lit side again cancels it.
+enum Indicator { off, left, right }

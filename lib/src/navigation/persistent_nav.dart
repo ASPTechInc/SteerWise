@@ -16,10 +16,9 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 // Project imports:
 import 'package:steer_wise/src/config/colours.dart';
 import 'package:steer_wise/src/screens/home_screen.dart';
-import 'package:steer_wise/src/screens/settings_screen.dart';
 import 'package:steer_wise/src/screens/show_me_tell_screen.dart';
 
-/// Bottom navigation between the Home, Show Me/Tell Me and Settings tabs.
+/// Bottom navigation between the Home and Show Me/Tell Me tabs.
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
 
@@ -51,14 +50,6 @@ class _BottomNavState extends State<BottomNav> {
         icon: const Icon(Icons.question_answer),
         title: 'Show Me/Tell Me',
       ),
-    ),
-    PersistentTabConfig(
-      screen: _TabVisibility(
-        controller: _controller,
-        index: 2,
-        child: const SettingsScreen(),
-      ),
-      item: ItemConfig(icon: const Icon(Icons.settings), title: 'Settings'),
     ),
   ];
 

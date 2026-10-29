@@ -16,13 +16,15 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 // Project imports:
 import 'package:steer_wise/src/config/constants.dart';
+import 'package:steer_wise/src/models/manoeuvre.dart';
 import 'package:steer_wise/src/screens/about_screen.dart';
 import 'package:steer_wise/src/screens/document_screen.dart';
 import 'package:steer_wise/src/screens/help_screen.dart';
 import 'package:steer_wise/src/screens/home_screen.dart';
+import 'package:steer_wise/src/simulation/driving_game.dart';
 import 'support/test_app.dart';
 
-const _instructions = AppConstants.instructions;
+final _route = DrivingGame.route.map((m) => m.instruction).toList();
 
 void main() {
   late FakePlatform platform;
@@ -36,8 +38,9 @@ void main() {
     await tester.pump();
   }
 
+  /// Taps an icon button by its tooltip.
   Future<void> tapButton(WidgetTester tester, String label) async {
-    final button = find.widgetWithText(ElevatedButton, label);
+    final button = find.byTooltip(label);
     await tester.ensureVisible(button);
     await tester.tap(button);
     await tester.pump();
@@ -53,71 +56,79 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   }
 
-  testWidgets('shows the camera, first instruction and simulation', (
-    tester,
-  ) async {
+  testWidgets('shows the camera, instruction and simulation', (tester) async {
     await pumpHome(tester);
 
     expect(find.text(AppConstants.appName), findsOneWidget);
-    expect(find.text(_instructions.first), findsOneWidget);
+    expect(find.text(Manoeuvre.followRoad), findsOneWidget);
     expect(find.text('Camera access is off.'), findsOneWidget);
     expect(find.text('Score: 0'), findsOneWidget);
     expect(find.text('Tap to start driving'), findsOneWidget);
   });
 
-  testWidgets('Next Instruction moves on and reads it aloud', (tester) async {
-    await pumpHome(tester);
-
-    await tapButton(tester, 'Next Instruction');
-
-    expect(find.text(_instructions[1]), findsOneWidget);
-    expect(find.text(_instructions.first), findsNothing);
-    expect(platform.spoken, [_instructions[1]]);
-  });
-
-  testWidgets('instructions start again after the last one', (tester) async {
-    await pumpHome(tester);
-
-    for (var i = 0; i < _instructions.length; i++) {
-      await tapButton(tester, 'Next Instruction');
-    }
-
-    expect(find.text(_instructions.first), findsOneWidget);
-    expect(platform.spoken, [..._instructions.skip(1), _instructions.first]);
-  });
-
-  testWidgets('auto mode gives a new instruction every 8 seconds', (
+  testWidgets('Next Instruction gives the next manoeuvre and reads it aloud', (
     tester,
   ) async {
     await pumpHome(tester);
 
-    await tapButton(tester, 'Start Auto Mode');
-    expect(find.text('Stop Auto Mode'), findsOneWidget);
-    expect(find.text(_instructions.first), findsOneWidget);
+    await tapButton(tester, 'Next Instruction');
+    expect(find.text(_route[0]), findsOneWidget);
+    expect(find.text(Manoeuvre.followRoad), findsNothing);
 
-    await tester.pump(const Duration(seconds: 8));
-    await tester.pump();
-    expect(find.text(_instructions[1]), findsOneWidget);
-
-    await tester.pump(const Duration(seconds: 8));
-    await tester.pump();
-    expect(find.text(_instructions[2]), findsOneWidget);
-
-    await tapButton(tester, 'Stop Auto Mode');
-    expect(find.text('Start Auto Mode'), findsOneWidget);
-
-    await tester.pump(const Duration(seconds: 16));
-    expect(find.text(_instructions[2]), findsOneWidget);
-    expect(platform.spoken, [_instructions[1], _instructions[2]]);
+    await tapButton(tester, 'Next Instruction');
+    expect(find.text(_route[1]), findsOneWidget);
+    expect(platform.spoken, [_route[0], _route[1]]);
   });
 
-  testWidgets('Get Feedback shows a tip', (tester) async {
+  testWidgets('the route starts again after the last manoeuvre', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+
+    for (var i = 0; i <= _route.length; i++) {
+      await tapButton(tester, 'Next Instruction');
+    }
+
+    expect(find.text(_route.first), findsOneWidget);
+    expect(platform.spoken, [..._route, _route.first]);
+  });
+
+  testWidgets('driving gives the instruction, then feedback on signalling', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+    await tapButton(tester, 'Start driving');
+
+    // Frames have to be pumped by hand while the simulation runs.
+    Future<void> drive(double seconds) async {
+      for (var t = 0.0; t < seconds; t += 0.05) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    const announceAt =
+        (DrivingGame.firstManoeuvreAt - DrivingGame.announceDistance) /
+        DrivingGame.roadSpeed;
+    await drive(announceAt + 0.1);
+    expect(find.text(_route.first), findsOneWidget);
+    expect(platform.spoken, [_route.first]);
+
+    await tapButton(tester, 'Signal left');
+    await drive(DrivingGame.announceDistance / DrivingGame.roadSpeed);
+
+    expect(find.text(Manoeuvre.followRoad), findsOneWidget);
+    expect(find.textContaining('Well done'), findsOneWidget);
+  });
+
+  testWidgets('Get Feedback explains there is nothing to report yet', (
+    tester,
+  ) async {
     await pumpHome(tester);
 
     await tapButton(tester, 'Get Feedback');
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.textContaining('Good job!'), findsOneWidget);
+    expect(find.textContaining('Drive up to a junction'), findsOneWidget);
   });
 
   group('menu', () {

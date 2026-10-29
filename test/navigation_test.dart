@@ -19,7 +19,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:steer_wise/main.dart';
 import 'package:steer_wise/src/navigation/persistent_nav.dart';
 import 'package:steer_wise/src/screens/home_screen.dart';
-import 'package:steer_wise/src/screens/settings_screen.dart';
 import 'package:steer_wise/src/screens/show_me_tell_screen.dart';
 import 'package:steer_wise/src/screens/splash_screen.dart';
 import 'support/test_app.dart';
@@ -82,9 +81,7 @@ void main() {
       expect(find.text('Show Me & Tell Me'), findsOneWidget);
       expect(_isActive(tester, ShowMeTellMeScreen), isTrue);
 
-      await _openTab(tester, 'Settings');
-      expect(find.byType(SegmentedButton<ThemeMode>), findsOneWidget);
-      expect(_isActive(tester, SettingsScreen), isTrue);
+      expect(_isActive(tester, HomeScreen), isFalse);
 
       await _openTab(tester, 'Home');
       expect(_isActive(tester, HomeScreen), isTrue);
@@ -97,7 +94,7 @@ void main() {
       await pumpWithProviders(tester, const BottomNav());
       await _settle(tester);
 
-      await _openTab(tester, 'Settings');
+      await _openTab(tester, 'Show Me/Tell Me');
 
       expect(_isActive(tester, HomeScreen), isFalse);
     });
@@ -125,19 +122,19 @@ void main() {
       expect(brightness(tester), Brightness.dark);
     });
 
-    testWidgets('changing the theme saves it and stays on Settings', (
-      tester,
-    ) async {
+    testWidgets('changing the theme in the menu saves it', (tester) async {
       final prefs = await launchApp(tester, {'themeMode': 'light'});
       expect(brightness(tester), Brightness.light);
 
-      await _openTab(tester, 'Settings');
+      await tester.tap(find.byTooltip('Open navigation menu'));
+      await _settle(tester);
       await tester.tap(find.text('Dark'));
       await _settle(tester);
 
       expect(brightness(tester), Brightness.dark);
       expect(prefs.getString('themeMode'), 'dark');
-      expect(_isActive(tester, SettingsScreen), isTrue);
+      // The menu stays open so the choice can be changed again.
+      expect(find.byType(Drawer), findsOneWidget);
     });
   });
 }

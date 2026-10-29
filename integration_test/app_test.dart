@@ -27,10 +27,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Project imports:
 import 'package:steer_wise/main.dart';
 import 'package:steer_wise/src/config/constants.dart';
+import 'package:steer_wise/src/models/manoeuvre.dart';
 import 'package:steer_wise/src/navigation/persistent_nav.dart';
 import 'package:steer_wise/src/screens/about_screen.dart';
 import 'package:steer_wise/src/screens/document_screen.dart';
 import 'package:steer_wise/src/screens/home_screen.dart';
+import 'package:steer_wise/src/simulation/driving_game.dart';
 
 /// Pumps frames until [finder] matches, failing after [timeout].
 ///
@@ -113,13 +115,10 @@ void main() {
 
   testWidgets('start, crash, retry, pause and stop driving', (tester) async {
     await _launchApp(tester);
-    expect(find.text(AppConstants.instructions.first), findsOneWidget);
+    expect(find.text(Manoeuvre.followRoad), findsOneWidget);
 
-    await _tapAndWait(
-      tester,
-      find.widgetWithText(ElevatedButton, 'Next Instruction'),
-    );
-    expect(find.text(AppConstants.instructions[1]), findsOneWidget);
+    await _tapAndWait(tester, find.byTooltip('Next Instruction'));
+    expect(find.text(DrivingGame.route.first.instruction), findsOneWidget);
 
     // Nothing moves until the user starts driving.
     expect(find.text('Tap to start driving'), findsOneWidget);
@@ -174,7 +173,7 @@ void main() {
 
   testWidgets('the chosen theme is saved and restored', (tester) async {
     final prefs = await _launchApp(tester);
-    await _openTab(tester, 'Settings');
+    await _tapAndWait(tester, find.byTooltip('Open navigation menu'));
 
     await _tapAndWait(tester, find.text('Dark'));
     expect(_brightness(tester), Brightness.dark);
@@ -187,12 +186,10 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await _launchApp(tester);
     expect(_brightness(tester), Brightness.light);
-    await _openTab(tester, 'Settings');
   });
 
   testWidgets('menu opens About and the bundled documents', (tester) async {
     await _launchApp(tester);
-    await _openTab(tester, 'Settings');
 
     await _tapAndWait(tester, find.byTooltip('Open navigation menu'));
     await _tapAndWait(tester, find.widgetWithText(ListTile, 'About'));

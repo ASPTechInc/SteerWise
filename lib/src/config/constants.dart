@@ -25,13 +25,4 @@ class AppConstants {
   static const String oglUrl =
       'https://www.nationalarchives.gov.uk/doc/open-government-licence/'
       'version/3/';
-
-  static const List<String> instructions = [
-    'Turn left at the junction',
-    'Turn right at the junction',
-    'Take the second exit at the roundabout',
-    'Pull up on the left in a safe place',
-    'Reverse around the corner',
-    'Parallel park between the cones',
-  ];
 }

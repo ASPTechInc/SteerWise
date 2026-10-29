@@ -14,6 +14,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 
 // Project imports:
+import 'package:steer_wise/src/models/manoeuvre.dart';
 import 'package:steer_wise/src/simulation/driving_game.dart';
 import 'package:steer_wise/src/utils/enums.dart';
 
@@ -22,6 +23,22 @@ import 'package:steer_wise/src/utils/enums.dart';
 class _FixedRandom implements Random {
   @override
   bool nextBool() => false;
+
+  @override
+  double nextDouble() => 0;
+
+  @override
+  int nextInt(int max) => 0;
+}
+
+/// After the second car, sends every oncoming car down the player's lane
+/// without changing lane. The second car's lane is fixed, so it only asks
+/// whether to change lane; later cars ask for a lane, then a lane change.
+class _HeadOnRandom implements Random {
+  var _calls = 0;
+
+  @override
+  bool nextBool() => (_calls++).isOdd;
 
   @override
   double nextDouble() => 0;
@@ -140,6 +157,156 @@ void main() {
       expect(game.playerX, DrivingGame.leftLane);
       expect(game.enemyY, DrivingGame.enemySpawnY);
       expect(game.lightState, TrafficLightState.green);
+    });
+  });
+
+  group('route', () {
+    // Collisions would stop the route, so these tests keep the oncoming
+    // traffic away.
+    setUp(() => game.debugSetLight(TrafficLightState.red));
+
+    void driveTo(double distance) {
+      while (game.roadOffset < distance) {
+        game.debugSetLight(TrafficLightState.red);
+        game.update(1 / 60);
+      }
+    }
+
+    test('says follow the road until the first manoeuvre is near', () {
+      driveTo(DrivingGame.firstManoeuvreAt - DrivingGame.announceDistance - 10);
+      expect(game.instruction.value, Manoeuvre.followRoad);
+
+      driveTo(DrivingGame.firstManoeuvreAt - DrivingGame.announceDistance);
+      expect(game.instruction.value, DrivingGame.route.first.instruction);
+      expect(game.manoeuvreAt, DrivingGame.firstManoeuvreAt);
+    });
+
+    test('marks a correct signal and cancels the indicator', () {
+      game.signal(Indicator.left);
+      driveTo(DrivingGame.firstManoeuvreAt);
+
+      final result = game.lastResult.value!;
+      expect(result.manoeuvre, DrivingGame.route.first);
+      expect(result.correct, isTrue);
+      expect(game.indicator, Indicator.off);
+      expect(game.instruction.value, Manoeuvre.followRoad);
+      expect(game.passed?.$2, DrivingGame.firstManoeuvreAt);
+      expect(game.nextManoeuvre, DrivingGame.route[1]);
+      expect(
+        game.manoeuvreAt,
+        DrivingGame.firstManoeuvreAt + DrivingGame.manoeuvreSpacing,
+      );
+    });
+
+    test('marks a missing or wrong signal', () {
+      driveTo(DrivingGame.firstManoeuvreAt);
+      expect(game.lastResult.value!.correct, isFalse);
+      expect(game.lastResult.value!.feedback, 'You forgot to signal left.');
+
+      // The second manoeuvre is the second exit, which needs no signal.
+      game.signal(Indicator.right);
+      driveTo(game.manoeuvreAt);
+      expect(game.lastResult.value!.correct, isFalse);
+    });
+
+    test('tapping the lit indicator again turns it off', () {
+      game.signal(Indicator.left);
+      game.signal(Indicator.left);
+      expect(game.indicator, Indicator.off);
+
+      game.signal(Indicator.left);
+      game.signal(Indicator.right);
+      expect(game.indicator, Indicator.right);
+    });
+
+    test('skipping gives the next instruction straight away', () {
+      game.skipManoeuvre();
+      expect(game.instruction.value, DrivingGame.route[0].instruction);
+      expect(game.manoeuvreAt, DrivingGame.announceDistance);
+
+      game.skipManoeuvre();
+      expect(game.instruction.value, DrivingGame.route[1].instruction);
+      expect(game.lastResult.value, isNull);
+    });
+
+    test('reset starts the route again', () {
+      driveTo(DrivingGame.firstManoeuvreAt);
+      game.reset();
+
+      expect(game.instruction.value, Manoeuvre.followRoad);
+      expect(game.lastResult.value, isNull);
+      expect(game.nextManoeuvre, DrivingGame.route.first);
+      expect(game.passed, isNull);
+    });
+  });
+
+  group('traffic near a manoeuvre', () {
+    late DrivingGame headOn;
+
+    setUp(() => headOn = DrivingGame(random: _HeadOnRandom()));
+    tearDown(() => headOn.dispose());
+
+    // Keeps the light green, so cars never wait at the stop line.
+    void runGreen(double seconds) {
+      for (var t = 0.0; t < seconds; t += 1 / 60) {
+        headOn.debugSetLight(TrafficLightState.green);
+        headOn.update(1 / 60);
+      }
+    }
+
+    test('oncoming cars keep to their lane while an instruction is given', () {
+      // The first instruction comes at 2.3 s and the first car leaves at
+      // 3 s, so the second car arrives while it is being given.
+      runGreen(3.1);
+      expect(headOn.instruction.value, isNot(Manoeuvre.followRoad));
+      expect(headOn.score, 1);
+      expect(headOn.enemyX, DrivingGame.rightLane);
+    });
+
+    test('between manoeuvres they can use either lane', () {
+      // The first manoeuvre is passed at 5.3 s and the third car arrives
+      // at 6 s.
+      runGreen(6.1);
+      expect(headOn.instruction.value, Manoeuvre.followRoad);
+      expect(headOn.score, 2);
+      expect(headOn.enemyX, DrivingGame.leftLane);
+    });
+
+    test('a car in the player\'s lane moves over when one is given', () {
+      runGreen(6.1);
+      headOn.skipManoeuvre();
+
+      runGreen(1.5); // Past the lane change point, before reaching the car
+      expect(headOn.enemyX, DrivingGame.rightLane);
+      expect(headOn.collided, isFalse);
+    });
+  });
+
+  group('manoeuvre signals', () {
+    test('follow the Highway Code', () {
+      const expected = {
+        ManoeuvreType.junctionLeft: Indicator.left,
+        ManoeuvreType.junctionRight: Indicator.right,
+        ManoeuvreType.pullUpLeft: Indicator.left,
+      };
+      for (final MapEntry(:key, :value) in expected.entries) {
+        expect(Manoeuvre(key).signal, value);
+      }
+      expect(
+        [
+          1,
+          2,
+          3,
+        ].map((e) => Manoeuvre(ManoeuvreType.roundabout, exit: e).signal),
+        [Indicator.left, Indicator.off, Indicator.right],
+      );
+    });
+
+    test('roundabout instructions name the exit', () {
+      expect(
+        const Manoeuvre(ManoeuvreType.roundabout, exit: 2).instruction,
+        'At the roundabout, take the second exit',
+      );
     });
   });
 

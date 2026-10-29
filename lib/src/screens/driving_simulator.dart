@@ -27,8 +27,13 @@ import 'package:steer_wise/src/widgets/road_painter.dart';
 ///
 /// The simulation starts stopped and only runs once the user taps play. It
 /// pauses itself when its tab is hidden or the app is put away.
+///
+/// Pass [game] to share the simulation with a parent, such as the Home
+/// screen showing its instructions. The parent then disposes it.
 class DrivingSimulationScreen extends StatefulWidget {
-  const DrivingSimulationScreen({super.key});
+  const DrivingSimulationScreen({super.key, this.game});
+
+  final DrivingGame? game;
 
   @override
   State<DrivingSimulationScreen> createState() =>
@@ -37,7 +42,7 @@ class DrivingSimulationScreen extends StatefulWidget {
 
 class _DrivingSimulationScreenState extends State<DrivingSimulationScreen>
     with SingleTickerProviderStateMixin {
-  final DrivingGame _game = DrivingGame();
+  late final DrivingGame _game = widget.game ?? DrivingGame();
   late final Ticker _ticker;
   Duration _lastTick = Duration.zero;
   late final AppLifecycleListener _lifecycle;
@@ -69,9 +74,8 @@ class _DrivingSimulationScreenState extends State<DrivingSimulationScreen>
   void dispose() {
     _lifecycle.dispose();
     _ticker.dispose();
-    _game
-      ..removeListener(_onGameChanged)
-      ..dispose();
+    _game.removeListener(_onGameChanged);
+    if (widget.game == null) _game.dispose();
     super.dispose();
   }
 
@@ -207,6 +211,7 @@ class _DrivingSimulationScreenState extends State<DrivingSimulationScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    _buildIndicatorButton(Indicator.left, running),
                     IconButton(
                       onPressed: running ? _pause : _play,
                       tooltip: switch (_state) {
@@ -229,6 +234,7 @@ class _DrivingSimulationScreenState extends State<DrivingSimulationScreen>
                       color: Colors.white,
                       disabledColor: Colors.white38,
                     ),
+                    _buildIndicatorButton(Indicator.right, running),
                   ],
                 ),
                 IconButton(
@@ -242,6 +248,22 @@ class _DrivingSimulationScreenState extends State<DrivingSimulationScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Turns the indicator on or off. Lit amber while that side is on.
+  Widget _buildIndicatorButton(Indicator side, bool running) {
+    final left = side == Indicator.left;
+    return ListenableBuilder(
+      listenable: _game,
+      builder: (context, _) => IconButton(
+        onPressed: running ? () => _game.signal(side) : null,
+        tooltip: left ? 'Signal left' : 'Signal right',
+        visualDensity: VisualDensity.compact,
+        icon: Icon(left ? Icons.turn_left : Icons.turn_right, size: 28),
+        color: _game.indicator == side ? Colors.amber : Colors.white,
+        disabledColor: Colors.white38,
       ),
     );
   }

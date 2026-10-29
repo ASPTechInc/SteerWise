@@ -15,6 +15,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 
 // Project imports:
+import 'package:steer_wise/src/models/manoeuvre.dart';
 import 'package:steer_wise/src/models/pedestrian.dart';
 import 'package:steer_wise/src/utils/enums.dart';
 import 'package:steer_wise/src/utils/helpers.dart';
@@ -64,6 +65,23 @@ class DrivingGame extends ChangeNotifier {
   /// example after the app is resumed) cannot teleport the cars.
   static const double maxStep = 0.05;
 
+  /// The route repeats this list. Distances are in logical pixels of road,
+  /// like [roadOffset].
+  static const List<Manoeuvre> route = [
+    Manoeuvre(ManoeuvreType.junctionLeft),
+    Manoeuvre(ManoeuvreType.roundabout, exit: 2),
+    Manoeuvre(ManoeuvreType.junctionRight),
+    Manoeuvre(ManoeuvreType.roundabout, exit: 3),
+    Manoeuvre(ManoeuvreType.pullUpLeft),
+    Manoeuvre(ManoeuvreType.roundabout, exit: 1),
+  ];
+  static const double firstManoeuvreAt = 900;
+  static const double manoeuvreSpacing = 1360; // 8 seconds of driving
+
+  /// The instruction is given this far before the manoeuvre (3 seconds),
+  /// just before it comes into view.
+  static const double announceDistance = 510;
+
   static const Map<TrafficLightState, double> lightDurations = {
     TrafficLightState.green: 4,
     TrafficLightState.yellow: 1.5,
@@ -84,6 +102,19 @@ class DrivingGame extends ChangeNotifier {
   late List<Pedestrian> _pedestrians;
   late int _score;
   late bool _collided;
+  late int _routeIndex;
+  late double _manoeuvreAt;
+  late bool _announced;
+  (Manoeuvre, double)? _passed;
+  late Indicator _indicator;
+
+  /// The current instruction. It only changes when a manoeuvre is
+  /// announced or passed, so screens can listen to it without rebuilding
+  /// every frame.
+  final ValueNotifier<String> instruction = ValueNotifier(Manoeuvre.followRoad);
+
+  /// Set each time the player reaches a manoeuvre.
+  final ValueNotifier<ManoeuvreResult?> lastResult = ValueNotifier(null);
 
   double get playerX => _playerX;
   double get enemyX => _enemyX;
@@ -94,6 +125,15 @@ class DrivingGame extends ChangeNotifier {
   List<Pedestrian> get pedestrians => List.unmodifiable(_pedestrians);
   int get score => _score;
   bool get collided => _collided;
+  Manoeuvre get nextManoeuvre => route[_routeIndex % route.length];
+
+  /// The [roadOffset] at which the player reaches [nextManoeuvre].
+  double get manoeuvreAt => _manoeuvreAt;
+
+  /// The manoeuvre just driven through and where it was, so it can stay on
+  /// screen while it scrolls away.
+  (Manoeuvre, double)? get passed => _passed;
+  Indicator get indicator => _indicator;
 
   /// Starts a new run.
   void reset() {
@@ -115,12 +155,45 @@ class DrivingGame extends ChangeNotifier {
     );
     _score = 0;
     _collided = false;
+    _routeIndex = 0;
+    _manoeuvreAt = firstManoeuvreAt;
+    _announced = false;
+    _passed = null;
+    _indicator = Indicator.off;
+    instruction.value = Manoeuvre.followRoad;
+    lastResult.value = null;
     notifyListeners();
   }
 
   void moveLeft() => _setPlayerLane(leftLane);
 
   void moveRight() => _setPlayerLane(rightLane);
+
+  /// Turns the indicator on for [side], or off if it is already on.
+  void signal(Indicator side) {
+    if (_collided) return;
+    _indicator = _indicator == side ? Indicator.off : side;
+    notifyListeners();
+  }
+
+  /// Gives the next instruction now, with its manoeuvre [announceDistance]
+  /// ahead. If an instruction is already waiting, that manoeuvre is skipped.
+  void skipManoeuvre() {
+    if (_collided) return;
+    if (_announced) _routeIndex++;
+    _manoeuvreAt = _roadOffset + announceDistance;
+    _announce();
+    notifyListeners();
+  }
+
+  void _announce() {
+    _announced = true;
+    instruction.value = nextManoeuvre.instruction;
+    // Keep the player's lane clear while they deal with the manoeuvre: an
+    // oncoming car in it moves back over, if it has not passed the point
+    // where cars change lane.
+    if (_enemyY <= laneChangeY) _enemyWillChangeLane = _enemyX == leftLane;
+  }
 
   void _setPlayerLane(double lane) {
     if (_collided || _playerX == lane) return;
@@ -134,6 +207,7 @@ class DrivingGame extends ChangeNotifier {
     final dt = min(seconds, maxStep);
 
     _roadOffset += roadSpeed * dt;
+    _updateRoute();
     _updateTrafficLight(dt);
     _updateEnemy(dt);
     _updatePedestrians(dt);
@@ -142,6 +216,21 @@ class DrivingGame extends ChangeNotifier {
       _collided = true;
     }
     notifyListeners();
+  }
+
+  void _updateRoute() {
+    if (!_announced && _roadOffset >= _manoeuvreAt - announceDistance) {
+      _announce();
+    }
+    if (_roadOffset < _manoeuvreAt) return;
+    lastResult.value = ManoeuvreResult(nextManoeuvre, _indicator);
+    _passed = (nextManoeuvre, _manoeuvreAt);
+    // Indicators cancel themselves once the turn is made.
+    _indicator = Indicator.off;
+    _routeIndex++;
+    _manoeuvreAt += manoeuvreSpacing;
+    _announced = false;
+    instruction.value = Manoeuvre.followRoad;
   }
 
   void _updateTrafficLight(double dt) {
@@ -186,6 +275,11 @@ class DrivingGame extends ChangeNotifier {
     }
     _enemyColour = getRandomCarColour(_random);
     _enemyWillChangeLane = _random.nextBool();
+    // Approaching a manoeuvre, oncoming cars stay in their own lane.
+    if (_announced) {
+      _enemyX = rightLane;
+      _enemyWillChangeLane = false;
+    }
   }
 
   void _updatePedestrians(double dt) {
@@ -201,6 +295,13 @@ class DrivingGame extends ChangeNotifier {
       }
       p.position = Offset(newX, p.position.dy);
     }
+  }
+
+  @override
+  void dispose() {
+    instruction.dispose();
+    lastResult.dispose();
+    super.dispose();
   }
 
   @visibleForTesting

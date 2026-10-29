@@ -30,10 +30,13 @@ class HelpScreen extends StatelessWidget {
       Icons.record_voice_over,
       'Voice instructions',
       [
-        'The Home screen shows the current instruction and reads it aloud '
-            'when you tap Next Instruction.',
-        'Start Auto Mode to hear a new instruction every 8 seconds.',
-        'Get Feedback shows a tip about your steering.',
+        'While you drive, the Home screen gives an instruction just before '
+            'each junction, roundabout or lay-by comes into view, and reads '
+            'it aloud.',
+        'Use the turn arrows beside the play button to signal. After each '
+            'manoeuvre you are told whether you signalled correctly.',
+        'Tap the arrow button to skip to the next instruction, or the light '
+            'bulb to see your last feedback again.',
         'Speech uses your device\'s text-to-speech engine. If nothing is '
             'read aloud, install one: free engines such as RHVoice and eSpeak '
             'NG are available on F-Droid. Then choose it in your device\'s '

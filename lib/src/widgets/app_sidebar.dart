@@ -12,14 +12,15 @@ import 'dart:async';
 
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 // Project imports:
 import 'package:steer_wise/src/config/constants.dart';
 import 'package:steer_wise/src/config/routes.dart';
 import 'package:steer_wise/src/utils/helpers.dart';
+import 'package:steer_wise/src/providers/theme_provider.dart';
 
 // Package imports:
-
 
 class AppSidebar extends StatelessWidget {
   const AppSidebar({super.key});
@@ -40,6 +41,7 @@ class AppSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -47,8 +49,36 @@ class AppSidebar extends StatelessWidget {
           DrawerHeader(
             decoration: BoxDecoration(color: theme.primaryColor),
             child: const Text(
-              'SteerWise Menu',
+              AppConstants.appName,
               style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            title: const Text('Theme'),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: ThemeMode.system,
+                    label: Text('System'),
+                    icon: Icon(Icons.brightness_auto),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.light,
+                    label: Text('Light'),
+                    icon: Icon(Icons.light_mode),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.dark,
+                    label: Text('Dark'),
+                    icon: Icon(Icons.dark_mode),
+                  ),
+                ],
+                selected: {themeProvider.themeMode},
+                onSelectionChanged: (selection) =>
+                    unawaited(themeProvider.setThemeMode(selection.first)),
+              ),
             ),
           ),
           ListTile(
