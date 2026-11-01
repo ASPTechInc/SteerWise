@@ -28,7 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  camera: ^0.12.1
+  camera: ^0.12.2
   flutter:
     sdk: flutter
   flutter_markdown_plus: ^1.0.12
